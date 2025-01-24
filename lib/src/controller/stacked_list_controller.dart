@@ -104,11 +104,24 @@ class StackedListController<T> {
   /// interacted.
   void handleDragUpdate(
     DragUpdateDetails details,
+    final AvailableSwipeDirections availableSwipeDirections,
   ) {
     if (disableInteractingGestures) return;
 
     if (itemCount > 1) {
-      outermostCardOffset.value = outermostCardOffset.value + details.delta;
+      final dx = details.delta.dx != 0 &&
+              (availableSwipeDirections ==
+                      AvailableSwipeDirections.horizontal ||
+                  availableSwipeDirections == AvailableSwipeDirections.all)
+          ? details.delta.dx
+          : 0.0;
+      final dy = details.delta.dx != 0 &&
+              (availableSwipeDirections == AvailableSwipeDirections.vertical ||
+                  availableSwipeDirections == AvailableSwipeDirections.all)
+          ? details.delta.dy
+          : 0.0;
+      final deltaOffset = Offset(dx, dy);
+      outermostCardOffset.value = outermostCardOffset.value + deltaOffset;
     }
   }
 
@@ -123,6 +136,7 @@ class StackedListController<T> {
     DragEndDetails details,
     double cardViewWidth,
     double layoutWidth,
+    final AvailableSwipeDirections availableSwipeDirections,
   ) async {
     if (disableInteractingGestures) return;
 

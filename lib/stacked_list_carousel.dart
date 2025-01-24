@@ -34,6 +34,7 @@ class StackedListCarousel<T> extends StatefulWidget {
     this.outermostCardWrapper,
     this.disableInteractingGestures = false,
     this.disableAutomaticLoop = false,
+    this.availableSwipeDirections = AvailableSwipeDirections.all,
     Key? key,
   })  : assert(
           behavior != CarouselBehavior.consume || emptyBuilder != null,
@@ -114,6 +115,8 @@ class StackedListCarousel<T> extends StatefulWidget {
 
   /// Set this to true to disable carousel's automatic loop timer.
   final bool disableAutomaticLoop;
+
+  final AvailableSwipeDirections availableSwipeDirections;
 
   @override
   State<StackedListCarousel<T>> createState() => _StackedListCarouselState();
@@ -465,11 +468,13 @@ class _StackedListCarouselState<T> extends State<StackedListCarousel<T>>
         },
         child: GestureDetector(
           onPanStart: controller.handleDragStart,
-          onPanUpdate: controller.handleDragUpdate,
+          onPanUpdate: (details) => controller.handleDragUpdate(
+              details, widget.availableSwipeDirections),
           onPanEnd: (details) => controller.handleDragEnd(
             details,
             viewSize.width,
             MediaQuery.of(context).size.width,
+            widget.availableSwipeDirections,
           ),
           child: AnimatedBuilder(
             animation: controller.transitionController,

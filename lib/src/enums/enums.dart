@@ -37,3 +37,9 @@ enum CarouselBehavior {
   loop,
   consume,
 }
+
+enum AvailableSwipeDirections {
+  horizontal,
+  vertical,
+  all,
+}

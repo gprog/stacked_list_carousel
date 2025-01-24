@@ -40,7 +40,7 @@ class _HomeState extends State<Home> {
         title: const Text('Stacked List Carousel'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: ColoredBox(
           color: Colors.black12,
           child: StackedListCarousel<AwesomeInAppBanner>(
@@ -105,6 +105,7 @@ class _HomeState extends State<Home> {
             emptyBuilder: (context) => const Center(
               child: Text('You have consumed all cards!'),
             ),
+            availableSwipeDirections: AvailableSwipeDirections.all,
             // You can customize inner cards wrapper builder. For example, you want to
             // shade the unready cards, just wrap it with a gray decorated box.
             innerCardsWrapper: (child) {
