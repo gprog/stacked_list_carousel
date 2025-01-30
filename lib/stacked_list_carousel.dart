@@ -35,6 +35,7 @@ class StackedListCarousel<T> extends StatefulWidget {
     this.disableInteractingGestures = false,
     this.disableAutomaticLoop = false,
     this.availableSwipeDirections = AvailableSwipeDirections.all,
+    required this.onUpdate,
     Key? key,
   })  : assert(
           behavior != CarouselBehavior.consume || emptyBuilder != null,
@@ -117,6 +118,11 @@ class StackedListCarousel<T> extends StatefulWidget {
   final bool disableAutomaticLoop;
 
   final AvailableSwipeDirections availableSwipeDirections;
+  final void Function(
+      {required int index,
+      required T currentItem,
+      required T nextItem,
+      required double percent}) onUpdate;
 
   @override
   State<StackedListCarousel<T>> createState() => _StackedListCarouselState();
@@ -161,8 +167,20 @@ class _StackedListCarouselState<T> extends State<StackedListCarousel<T>>
           controller.startTransitionLoop();
         }
         setState(() {});
+        _updateProgress();
       },
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        _updateProgress();
+      },
+    );
+
+    super.didChangeDependencies();
   }
 
   void initializeArguments() {
@@ -178,7 +196,6 @@ class _StackedListCarouselState<T> extends State<StackedListCarousel<T>>
       )
       ..carouselBehavior = widget.behavior
       ..onAnimating = (behavior) {
-        if (!mounted) return;
         if (behavior == CarouselBehavior.consume) {
           cards[controller.realOutermostIndex] = null;
         }
@@ -193,8 +210,14 @@ class _StackedListCarouselState<T> extends State<StackedListCarousel<T>>
       ..autoSlideDuration = widget.autoSlideDuration
       ..disableInteractingGestures = widget.disableInteractingGestures;
 
-    controller.transitionController
-        .addStatusListener(transitionControllerListener);
+    controller.transitionController.addStatusListener(
+      (status) {
+        if (status == AnimationStatus.completed) {
+          controller.swapCount++;
+          if (mounted) setState(() {});
+        }
+      },
+    );
 
     controller.registerOutermostCardAnimationListener();
 
@@ -209,20 +232,37 @@ class _StackedListCarouselState<T> extends State<StackedListCarousel<T>>
       itemCount: controller.itemCount,
       initial: true,
     );
+
+    controller.outermostCardOffset.addListener(_updateProgress);
   }
 
-  void transitionControllerListener(AnimationStatus status) {
-    if (status == AnimationStatus.completed) {
-      controller.swapCount++;
-      if (mounted) setState(() {});
-    }
+  void _updateProgress() {
+    try {
+      final value = controller.outermostCardOffset.value;
+      final currentIndex = controller.realOutermostIndex;
+      final nexIndex = controller.realOutermostIndex + 1 >= controller.itemCount
+          ? 0
+          : controller.realOutermostIndex + 1;
+      var percent = min(value.distance / (viewSize.width / 2), 1.0);
+      var i = currentIndex;
+      if (controller.transitionForwarding) {
+        percent = 1;
+        i = nexIndex;
+      }
+      final currentItem = controller.items[currentIndex];
+      final nextItem = controller.items[nexIndex];
+      widget.onUpdate(
+        index: i,
+        currentItem: currentItem,
+        nextItem: nextItem,
+        percent: percent,
+      );
+    } catch (e) {}
   }
 
   @override
   void dispose() {
-    // controller.dispose();
-    controller.transitionController
-        .removeStatusListener(transitionControllerListener);
+    controller.dispose();
     super.dispose();
   }
 
