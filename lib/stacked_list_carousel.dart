@@ -178,6 +178,7 @@ class _StackedListCarouselState<T> extends State<StackedListCarousel<T>>
       )
       ..carouselBehavior = widget.behavior
       ..onAnimating = (behavior) {
+        if (!mounted) return;
         if (behavior == CarouselBehavior.consume) {
           cards[controller.realOutermostIndex] = null;
         }
@@ -192,14 +193,8 @@ class _StackedListCarouselState<T> extends State<StackedListCarousel<T>>
       ..autoSlideDuration = widget.autoSlideDuration
       ..disableInteractingGestures = widget.disableInteractingGestures;
 
-    controller.transitionController.addStatusListener(
-      (status) {
-        if (status == AnimationStatus.completed) {
-          controller.swapCount++;
-          if (mounted) setState(() {});
-        }
-      },
-    );
+    controller.transitionController
+        .addStatusListener(transitionControllerListener);
 
     controller.registerOutermostCardAnimationListener();
 
@@ -216,9 +211,18 @@ class _StackedListCarouselState<T> extends State<StackedListCarousel<T>>
     );
   }
 
+  void transitionControllerListener(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      controller.swapCount++;
+      if (mounted) setState(() {});
+    }
+  }
+
   @override
   void dispose() {
     // controller.dispose();
+    controller.transitionController
+        .removeStatusListener(transitionControllerListener);
     super.dispose();
   }
 
