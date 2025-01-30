@@ -165,7 +165,7 @@ class StackedListController<T> {
     _unlockTimer();
   }
 
-  late final Duration autoSlideDuration;
+  Duration autoSlideDuration = Duration.zero;
   Timer? _autoSlideTimer;
   int _timerLockedCount = -1;
   bool _timerUnlocked = true;
