@@ -218,7 +218,7 @@ class _StackedListCarouselState<T> extends State<StackedListCarousel<T>>
 
   @override
   void dispose() {
-    controller.dispose();
+    // controller.dispose();
     super.dispose();
   }
 
